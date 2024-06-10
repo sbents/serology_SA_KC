@@ -20,6 +20,8 @@ endemic_incidence = read.csv("monthly_incidence_2018_2023.csv") %>%
   mutate(virus = replace(virus, virus == "Flu A H3", "Flu A/H3")) %>%
   dplyr::select(time, virus, pct_pos)
 
+sum(endemic_incidence$num_tested)
+
 ### adds covid king county 
 covid_incidence = read.csv("cov_kingcount.csv") %>%
   mutate(date = as.Date(date, "%m/%d/%Y"),month = month(date), year = year(date))%>%
@@ -35,13 +37,13 @@ all_path = rbind(endemic_incidence, covid_incidence) %>%
                                           "HCoV 229E", "HCoV NL63", "HCoV OC43", "HCoV HKU1", "CoV N")))
 
 
-ggplot(data = all_path, aes(x = time, y = pct_pos, col = Virus))+
+a = ggplot(data = all_path, aes(x = time, y = pct_pos, col = Virus))+
   annotate("rect", xmin = c(2020.58, 2021.5, 2022.33), xmax = c(2020.92, 2021.95, 2022.67), 
-           ymin = 0, ymax = Inf, alpha = .5, fill = c("lightblue", "lightblue", "lightblue"))+
+           ymin = 0, ymax = Inf, alpha = .15, fill = c("orangered", "orangered", "orangered"))+
   annotate("rect", xmin = c(2021.83, 2022.25), xmax = c(2021.95, 2022.75), 
-           ymin = 0, ymax = Inf, alpha = .15, fill = c("orangered", "orangered"))+
+           ymin = 0, ymax = Inf, alpha = .5, fill = c("lightblue", "lightblue"))+
   geom_line(lwd = 1.2) +
-  scale_color_manual(values = c( "salmon1","tomato","darkred", "blue", "lightblue","darkslategray3", "darkslategray4","darkslategray", "black" )) +
+  scale_color_manual(values = c( "salmon1","tomato","darkred", "royalblue2", "lightblue","darkslategray3", "darkslategray4","darkslategray", "black" )) +
   theme_bw() +
   ylab("PCR positive (%)") +
   theme(legend.position = "bottom")
@@ -82,31 +84,94 @@ all_age_dat = left_join(all_age_serology, recode_assay, by = "Assay") %>%
   drop_na(Virus, log_titer, year) 
 head(all_age_dat)
 
-ggplot(data = all_age_dat, aes(x = as.character(year), y = log_titer, fill = Population )) +
+b = ggplot(data = all_age_dat, aes(x = as.character(year), y = log_titer, fill = Population )) +
   geom_violin( ) +
   facet_wrap(vars(Virus)) +
   theme_bw() +
-  scale_fill_manual(values = c("lightblue2", "tomato")) +
+  scale_fill_manual(values = c("lightblue2", "salmon1")) +
   theme(legend.position = "bottom") +
   xlab("Year") + 
   ylab("Log titer") +
   theme(strip.background =element_rect(fill="lightgray"))
 
 
+# ____________________________________________________________________________
+# Fig 1c-d
+library(dplyr)
+
+ped_dat_age = left_join(ped_serology, dem, by = "Sample") %>%
+  mutate(blood_date = as.Date(blood_date), year = year(blood_date), age = age_raw) %>%
+  dplyr::select(age, year, Assay, log_titer)
+
+adult_serology_age = rbind(adult_serologyc, adult_serologyr) %>%
+  mutate(date = as.Date(Collection.Date), year = year(date), 
+         log_titer = log(titer_mean), age = Age) %>%
+  dplyr::select(age, year, Assay, log_titer)
+
+# Join 
+age_year_pop = rbind(ped_dat_age, adult_serology_age ) %>%
+  mutate(age_band = ifelse(age < 1, "<1",
+                           ifelse(age >= 1 & age < 3, "1-2",
+                                  ifelse(age >= 3 & age < 5, "3-4", 
+                                         ifelse(age >= 5 & age < 11, "5-10", 
+                                                ifelse(age >= 20 & age < 49, "18-49",
+                                                       ifelse(age >= 50 & age < 65, "50-64", "65+"))))))) %>%
+  filter(log_titer > 0) %>%
+  group_by(year, age_band, Assay) %>%
+  dplyr::mutate(mean = exp(mean(log(log_titer)))) %>%
+  distinct(year, age_band, Assay, mean)
 
 
+Assay = print(unique(age_year_pop$Assay))
+Virus = c("HCoV HKU1", "HCoV OC43", "HCoV 229E", "HCoV NL63", NA, NA, "CoV N",
+          "CoV RBD", "CoV S", "Flu B/Yam", "Flu A/H1", "Flu A/H3", NA, "Flu B/Vic", "RSV")
+recode_assay = data.frame(Assay, Virus)
+hm_dat = left_join(age_year_pop, recode_assay, by = "Assay") %>%
+  drop_na(Virus)
+head(hm_dat)
+
+yr_2020 = hm_dat  %>%
+  filter(year == 2020) %>%
+  mutate(mean_2020 = mean)
+yr_2021 = hm_dat %>%
+  filter(year == 2021)%>%
+  mutate(mean_2021 = mean)
+
+hm1 = left_join(yr_2020, yr_2021, by = c("age_band", "Virus")) %>%
+  mutate(change = (mean_2021 - mean_2020)/mean_2020)
+
+c = ggplot(data = hm1, aes(x = age_band, y = Virus)) +
+  geom_tile(aes(fill = change)) +
+  scale_fill_gradient2(low = "tomato", mid = "white", high = "royalblue1") +
+  theme_bw() +
+  xlab("Age band (years)") +
+  ylab("") +
+  theme(legend.position = "bottom") + 
+  labs(fill = "Percent change (%)")
 
 
+yr_2022 = hm_dat %>%
+  filter(year == 2022)%>%
+  mutate(mean_2022 = mean)
+
+hm2 = left_join(yr_2021, yr_2022, by = c("age_band", "Virus")) %>%
+  mutate(change = (mean_2022 - mean_2021)/mean_2021)
+hm2$age_band = factor(hm2$age_band, levels = c("<1", "1-2", "3-4", "5-10",
+                                              "18-49", "50-64", "65+" ))
+
+d = ggplot(data = hm2, aes(x = age_band, y = Virus)) +
+  geom_tile(aes(fill = change)) +
+  scale_fill_gradient2(low = "tomato", mid = "white", high = "royalblue3") +
+  theme_bw() +
+  xlab("Age band (years)") +
+  ylab("") +
+  theme(legend.position = "bottom") + 
+  labs(fill = "Percent change (%)")
 
 
-
-
-
-
-
-
-
-
+plot_grid(a, b, c, d, nrow =2, labels = c("a", 'b', 'c', 'd'))
+  
+  
 
 
 ## Figure 2 
@@ -136,7 +201,11 @@ b_kc1 = ggplot(data = seattle_hrsv, aes(x = factor(age, level = c("<5 yo",  "> 1
   ylab("Short-term log titer boost")+
   theme(axis.text=element_text(size=12)) +
   xlab("Age group") +
-  scale_fill_manual(name = "Subtype", values = c("lightsteelblue1", "lightsteelblue2", "lightsteelblue3", "lightsteelblue4", "gray40", "gray30"))
+  scale_fill_manual(name = "Subtype", values = c("lightsteelblue1", "lightsteelblue2", "lightsteelblue3", "lightsteelblue4", "gray30", "black")) +
+  ylim(c(0, 6.5)) +
+  geom_errorbar(
+    aes(ymin = mu_lower, 
+        ymax = mu_upper), lwd = .8, width = .2, col = "gray60", position = position_dodge(.9))
 b_kc1
 
 w_kc1 = ggplot(data = seattle_hrsv, aes(x = factor(age, level = c("<5 yo",  "> 18 yo")), y = wane_short, fill =sub)) + 
@@ -177,8 +246,9 @@ b_kc2 = ggplot(data = seattle_flu, aes(x = factor(age, level = c("<5 yo",  "> 18
   ylab("Short-term log titer boost")+
   theme(axis.text=element_text(size=12)) +
   xlab("Age group") +
-  scale_fill_manual(name = "Subtype", values = c("lightsteelblue1", "lightsteelblue2", "lightsteelblue3", "lightsteelblue4")) +
-  guides(fill="none")
+  scale_fill_manual(name= "Subtype", values = c("lightsteelblue1", "lightsteelblue2", "lightsteelblue3", "lightsteelblue4")) +
+  guides(fill="none") +
+  ylim(c(0, 6.5))
 b_kc2
 
 w_kc2 = ggplot(data = seattle_flu, aes(x = factor(age, level = c("<5 yo",  "> 18 yo")), y = wane_short, fill =sub)) + 
@@ -242,7 +312,7 @@ w_sa
 library(cowplot)
 
 fig2 = plot_grid(b_kc1, b_kc2, b_sa, w_kc1, w_kc2, w_sa, nrow = 2, rel_widths = c(1, .75, 1, 1, .75, 1), labels = c("a", "b", "c", "d", "e", "f"))
-
+fig2
 
 
 jpeg("Figure_2_kinetics.jpeg", units = "in", width=14, height=7, res=300)
