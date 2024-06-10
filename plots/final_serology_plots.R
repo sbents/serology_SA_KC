@@ -4,6 +4,110 @@ library(cowplot)
 library(dplyr)
 
 
+setwd("C:/Users/bentssj/OneDrive - National Institutes of Health/Year_2024/serology/seattle")
+
+
+# Figure 1A
+### load in endemic respiratory monthly incidence data
+endemic_incidence = read.csv("monthly_incidence_2018_2023.csv") %>%
+  mutate(pct_pos = num_pos/num_tested, time = as.numeric(collection_month)/12 + as.numeric(collection_year) )%>%
+  filter(virus != "Flu A") %>% # non-subtyped Flu A 
+  mutate(virus = replace(virus, virus == "Corona 229E", "HCoV 229E")) %>%
+  mutate(virus = replace(virus, virus == "Corona HKU1", "HCoV HKU1")) %>%
+  mutate(virus = replace(virus, virus == "Corona NL63", "HCoV NL63")) %>%
+  mutate(virus = replace(virus, virus == "Corona OC43", "HCoV OC43")) %>%
+  mutate(virus = replace(virus, virus == "Flu A H1 2009", "Flu A/H1")) %>%
+  mutate(virus = replace(virus, virus == "Flu A H3", "Flu A/H3")) %>%
+  dplyr::select(time, virus, pct_pos)
+
+### adds covid king county 
+covid_incidence = read.csv("cov_kingcount.csv") %>%
+  mutate(date = as.Date(date, "%m/%d/%Y"),month = month(date), year = year(date))%>%
+  mutate(time = month/12 + year)%>%
+  group_by(time) %>% 
+  dplyr::summarize(across(pcr_test_count:pcr_test_pos_count, ~sum(.x, na.rm = TRUE))) %>%
+  mutate(pct_pos = pcr_test_pos_count/pcr_test_count, virus = "CoV N") %>%
+  dplyr::select(time, virus, pct_pos)
+
+### all pathogens incidence curve
+all_path = rbind(endemic_incidence, covid_incidence) %>%
+  mutate(Virus = factor(virus, levels = c("Flu A/H3", "Flu A/H1", "Flu B", "RSV", 
+                                          "HCoV 229E", "HCoV NL63", "HCoV OC43", "HCoV HKU1", "CoV N")))
+
+
+ggplot(data = all_path, aes(x = time, y = pct_pos, col = Virus))+
+  annotate("rect", xmin = c(2020.58, 2021.5, 2022.33), xmax = c(2020.92, 2021.95, 2022.67), 
+           ymin = 0, ymax = Inf, alpha = .5, fill = c("lightblue", "lightblue", "lightblue"))+
+  annotate("rect", xmin = c(2021.83, 2022.25), xmax = c(2021.95, 2022.75), 
+           ymin = 0, ymax = Inf, alpha = .15, fill = c("orangered", "orangered"))+
+  geom_line(lwd = 1.2) +
+  scale_color_manual(values = c( "salmon1","tomato","darkred", "blue", "lightblue","darkslategray3", "darkslategray4","darkslategray", "black" )) +
+  theme_bw() +
+  ylab("PCR positive (%)") +
+  theme(legend.position = "bottom")
+
+#_________________________________________________________________________
+# Fig 1B 
+### children MSD serology samples
+cov = read.csv("serosamples_CoV_22Mar2024.csv")
+resp = read.csv("serosamples_Resp_22Mar2024.csv") 
+dem = read.csv("demos_children.csv") %>%
+  mutate(Sample = ï..sample_id)
+
+ped_dat = left_join(ped_serology, dem, by = "Sample") %>%
+  mutate(blood_date = as.Date(blood_date), year = year(blood_date)) %>%
+  dplyr::select(Assay, log_titer, year) %>%
+  mutate(Population = "Pediatric")
+
+
+### adult samples 
+# use paired sera to get it 
+adult_serologyc = read.csv("C:/Users/bentssj/OneDrive - National Institutes of Health/Scenario Hub/Seattle Flu Study/adult_serology_cov.csv") 
+adult_serologyr = read.csv("C:/Users/bentssj/OneDrive - National Institutes of Health/Scenario Hub/Seattle Flu Study/adult_serology_res.csv")
+
+adult_serology = rbind(adult_serologyc, adult_serologyr) %>%
+  mutate(date = as.Date(Collection.Date), year = year(date), 
+         log_titer = log(titer_mean)) %>%
+  dplyr::select(Assay, log_titer, year) %>%
+  mutate(Population ="Adult")
+
+# Join children and adults 
+all_age_serology = rbind(ped_dat, adult_serology)
+Assay = print(unique(all_age_serology$Assay))
+Virus = c("HCoV HKU1", "HCoV OC43", "HCoV 229E", "HCoV NL63", NA, NA, "CoV N",
+          "CoV RBD", "CoV S", "Flu B/Yam", "Flu A/H1", "Flu A/H3", NA, "Flu B/Vic", "RSV", NA)
+recode_assay = data.frame(Assay, Virus)
+
+all_age_dat = left_join(all_age_serology, recode_assay, by = "Assay") %>%
+  drop_na(Virus, log_titer, year) 
+head(all_age_dat)
+
+ggplot(data = all_age_dat, aes(x = as.character(year), y = log_titer, fill = Population )) +
+  geom_violin( ) +
+  facet_wrap(vars(Virus)) +
+  theme_bw() +
+  scale_fill_manual(values = c("lightblue2", "tomato")) +
+  theme(legend.position = "bottom") +
+  xlab("Year") + 
+  ylab("Log titer") +
+  theme(strip.background =element_rect(fill="lightgray"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Figure 2 
 ### kING County rsv/hcov
@@ -136,4 +240,13 @@ w_sa
 ##### Figure
 
 library(cowplot)
-plot_grid(b_kc1, b_kc2, b_sa, w_kc1, w_kc2, w_sa, nrow = 2, rel_widths = c(1, .75, 1, 1, .75, 1), labels = c("A", "C", "E", "B", "D", "F"))
+
+fig2 = plot_grid(b_kc1, b_kc2, b_sa, w_kc1, w_kc2, w_sa, nrow = 2, rel_widths = c(1, .75, 1, 1, .75, 1), labels = c("a", "b", "c", "d", "e", "f"))
+
+
+
+jpeg("Figure_2_kinetics.jpeg", units = "in", width=14, height=7, res=300)
+ggarrange(fig2)
+
+dev.off()
+
