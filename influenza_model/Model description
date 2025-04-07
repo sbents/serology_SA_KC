@@ -1,1 +1,5 @@
 Age-structured SEIRS influenza model
+
+- seattle_flu_model_outputs.R --> Main code for Seattle influenza model and related figures. 
+- mixing_75.csv --> population mixing matrix, necessary to run model
+- toy_odin.R --> necessary for ODE integration 
