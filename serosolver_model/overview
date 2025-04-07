@@ -1,3 +1,4 @@
-par_tab_base_new.csv --> parameter table needed for serosolver 
-serosolver_KC_May2024.R --> Set up for running serosolver model on one antigen using King County data for children and adult samples 
+File Overviews 
+King_County_Serosolver.R --> Set up code for running serosolver model on one antigen using King County data for children and adult samples 
+South_Africa_Serosolver.R --> Set up for running serosolver model on one antigen using PHIRST South Africa data 
 serology_manuscript_analysis_plots.R --> Code to produce all serology figures and run statistical analyses 
