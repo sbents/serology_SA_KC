@@ -24,7 +24,7 @@ Demo
 
 The analysis is separated into two phases, 1) influenza tranmission model and 2) serosolver model for individual-level serology data.
 
-1) influenza_model: All R code needed to generate age-structured SEIRS influenza transmission model and produce relevant figures. Expected outputs and run time: Model generated for tiered and uniform immunity structure time series and age structure compared to observed hospitalization data, 25 min run time. 
+1) influenza_model: R code required to generate age-structured SEIRS influenza transmission model and produce relevant figures. Expected outputs and run time: Model generated for tiered and uniform immunity structure time series and age structure compared to observed hospitalization data, 25 min run time. 
    
   - seattle_flu_model_outputs.R: Provides R code for age-structured compartmental Susceptible-Exposed-Infected-Recovered influenza       
     transmission model. Expected run time: 15 minutes. 
@@ -36,7 +36,7 @@ The analysis is separated into two phases, 1) influenza tranmission model and 2)
     bands from ages 5-80. Mixing matrix was adapted from Mossing et al. 2008 (10.1371/journal.pmed.0050074). Must be present in R 
     environment to run analysis in seattle_flu_model_outputs.R.
 
-2) serosolver_model: All R code needed to produce estimates of boosting and waning rates from South Africa and King County individual-level serological data. Expected outputs: Figures related to serology and relevant statistical analyses on serological data.
+2) serosolver_model: R code required to produce estimates of boosting and waning rates from South Africa and King County individual-level serological data. Expected outputs: Figures related to serology and relevant statistical analyses on serological data.
 
   - King_County_Serosolver.R: R Code to produce boosting and waning estimates for one sample antigen using the Serosolver model on King      County serology data. Example code provided for cross-sectional pediatric serology and adult paired serology separately. Simulated       data provided to run the model in King_County_simulated_dat.csv. Expected run time: 30 minutes for one antigen, ~2 day for all antigens on a standard desktop. 
     
