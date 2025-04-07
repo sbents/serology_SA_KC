@@ -27,8 +27,7 @@ The analysis is separated into two phases, 1) influenza tranmission model and 2)
 
 2) serosolver_model: All R code needed to produce estimates of boosting and waning rates from South Africa and King County individual-level serological data. Expected outputs: Figures related to serology and relevant statistical analyses on serological data.
 
-  - King_County_Serosolver.R: R Code to produce boosting and waning estimates for one sample antigen using the Serosolver model on King      County serology data. Example code provided for cross-sectional pediatric serology and adult paired serology separately. Simulated       data provided to run the model in King_County_simulated_dat.csv. Expected run time: 30 minutes for one antigen, ~2 day for all    
-    antigens on a standard desktop. 
+  - King_County_Serosolver.R: R Code to produce boosting and waning estimates for one sample antigen using the Serosolver model on King      County serology data. Example code provided for cross-sectional pediatric serology and adult paired serology separately. Simulated       data provided to run the model in King_County_simulated_dat.csv. Expected run time: 30 minutes for one antigen, ~2 day for all antigens on a standard desktop. 
     
   - South_Africa_Serosolver.R: R Code to produce boosting and waning estimates for one sample antigen using the Serosolver model on          South Africa PHIRST serology. Simulated data provided to run the model in South_Africa_simulated_dat.csv. Expected run time: 30          minutes for one antigen, ~1 day for all antigens on a standard desktop. 
     
