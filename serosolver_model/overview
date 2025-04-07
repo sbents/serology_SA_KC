@@ -1,0 +1,3 @@
+par_tab_base_new.csv --> parameter table needed for serosolver 
+serosolver_KC_May2024.R --> Set up for running serosolver model on one antigen using King County data for children and adult samples 
+serology_manuscript_analysis_plots.R --> Code to produce all serology figures and run statistical analyses 
