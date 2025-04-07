@@ -5,12 +5,15 @@ Overview
 The rebound of endemic respiratory viruses following the COVID-19 pandemic was marked by atypical transmission dynamics, with children experiencing increased disease burden and out-of-season epidemics as restrictions relaxed. Here we used serology from a newly developed quantitative multiplex assay to assess the post-pandemic immunity debt, a drop in immunity due to a lack of endemic virus circulation during COVID-19. We assessed age-specific antibody dynamics in Seattle, Washington, US, across a broad range of respiratory viruses, including influenza, respiratory syncytial virus, seasonal coronaviruses, and SARS-CoV-2. We found that respiratory virus immunodynamics differed between individuals <5 years of age and older individuals, with young children experiencing both larger boosts and quicker waning of antibodies across pathogens. We confirmed that these patterns are upheld in a non-pandemic setting by analyzing influenza serological data from South Africa. We incorporated our serological insights into an influenza transmission model calibrated to epidemiological data from Seattle and show that consideration of age-specific immunodynamics may be important to anticipate the effects of pandemic perturbations. 
 
 Software requirements 
+
 All analyses were conducted in R Studio Version 2024.12.1+563 (2024.12.1+563). 
 
 Installation Guide 
+
 R Studio can be installed at this link: https://posit.co/download/rstudio-desktop/. Typical installation is under ten minutes using an updated operating system.
 
 Demo 
+
 The analysis is separated into two phases, 1) influenza tranmission model and 2) serosolver model for individual-level serology data.
 
 1) influenza_model: All R code needed to generate age-structured SEIRS influenza transmission model and produce relevant figures. Expected outputs and run time: Model generated for tiered and uniform immunity structure time series and age structure compared to observed hospitalization data, 25 min run time. 
@@ -35,6 +38,7 @@ The analysis is separated into two phases, 1) influenza tranmission model and 2)
      run time: 15 minutes.
 
 Instructions 
+
 1. Run South_Africa_Serosolver.R and King_County_Serosolver.R to produce boosting and waning estimates from individual-level serology.
 2. Visaulize serosolver outputs and conduct relevant statisitcal tests using serology_manuscript_analysis_plots.R.
 3. Load in toy_odin.R and mixing_75.csv to R environment.
