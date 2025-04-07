@@ -1,6 +1,7 @@
 Multiplex serology reveals age-specific immunodynamics of respiratory pathogens in the wake of the COVID-19 pandemic 
 
 Overview 
+
 The rebound of endemic respiratory viruses following the COVID-19 pandemic was marked by atypical transmission dynamics, with children experiencing increased disease burden and out-of-season epidemics as restrictions relaxed. Here we used serology from a newly developed quantitative multiplex assay to assess the post-pandemic immunity debt, a drop in immunity due to a lack of endemic virus circulation during COVID-19. We assessed age-specific antibody dynamics in Seattle, Washington, US, across a broad range of respiratory viruses, including influenza, respiratory syncytial virus, seasonal coronaviruses, and SARS-CoV-2. We found that respiratory virus immunodynamics differed between individuals <5 years of age and older individuals, with young children experiencing both larger boosts and quicker waning of antibodies across pathogens. We confirmed that these patterns are upheld in a non-pandemic setting by analyzing influenza serological data from South Africa. We incorporated our serological insights into an influenza transmission model calibrated to epidemiological data from Seattle and show that consideration of age-specific immunodynamics may be important to anticipate the effects of pandemic perturbations. 
 
 Software requirements 
