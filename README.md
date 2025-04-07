@@ -1,6 +1,6 @@
 Multiplex serology reveals age-specific immunodynamics of respiratory pathogens in the wake of the COVID-19 pandemic 
 
--- Samantha J. Bents, sjbents@stanford.edu --
+Samantha J. Bents, sjbents@stanford.edu
 
 ____________________________________________________________________________________________________________________
 
