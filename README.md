@@ -54,14 +54,16 @@ ________________________________________________________________________________
 Instructions 
 
 Serological analysis
+
 1. Run South_Africa_Serosolver.R and King_County_Serosolver.R to produce boosting and waning estimates from individual-level serology. To run code, antigenic_map_quarters.csv must be 
 present in R environment. Simulated data is provided to run King_County_Serosolver.R analysis for the seasonal coronavirus HCoV HKU1 antigen: simulated_hcov_hku1_pediatric_serology.csv.
 Load data in and begin analysis at Line 68 in King_County_Serosolver.R. 
 3. Visaulize serosolver outputs and conduct relevant statisitcal tests using serology_manuscript_analysis_plots.R.
 
 Influenza modeling analysis 
-5. Load in toy_odin.R and mixing_75.csv to R environment.
-6. Run seattle_flu_model_outputs.R to produce estimates for SEIRS influenza transmission model and plot against observed hospitalization 
+
+1. Load in toy_odin.R and mixing_75.csv to R environment.
+2. Run seattle_flu_model_outputs.R to produce estimates for SEIRS influenza transmission model and plot against observed hospitalization 
    data. 
 
 
