@@ -39,13 +39,10 @@ The analysis is separated into two phases, 1) influenza tranmission model and 2)
     environment to run analysis in seattle_flu_model_outputs.R.
 
 
+
 2) serosolver_model: R code required to produce estimates of boosting and waning rates from South Africa and King County individual-level serological data. Expected outputs: Figures related to serology and relevant statistical analyses on serological data.
 
-  - King_County_Serosolver.R: R Code to produce boosting and waning estimates for one sample antigen using the Serosolver model on King      County serology data. Example code provided for cross-sectional pediatric serology and adult paired serology separately. Simulated       data provided to run the seroslver model for one antigen in simulated_hcov_hku1_pediatric_serology.csv. Expected run time: 30 minutes for single antigen, ~2 day for all antigens on a standard desktop.
-
-  - King_County_Serosolver.R --> Set up code for running serosolver model on one antigen using King County data for children and adult samples 
-       To run code, simulated serological is provided for the HCoV HKU1 antigen: simulated_hcov_hku1_pediatric_serology.csv (Line 68)
-       To run code, antigenic_map_quarters.csv must be present in the environment. 
+  - King_County_Serosolver.R: R Code to produce boosting and waning estimates for one sample antigen using the Serosolver model on King      County serology data. Example code provided for cross-sectional pediatric serology and adult paired serology separately. Simulated       data provided to run the seroslver model for one antigen: simulated_hcov_hku1_pediatric_serology.csv. To run code, antigenic_map_quarters.csv must be present in the R environment. Expected run time: 30 minutes for single antigen, ~2 days for all antigens on a standard desktop.
 
   - South_Africa_Serosolver.R: R Code to produce boosting and waning estimates for one sample antigen using the Serosolver model on          South Africa PHIRST serology. Simulated data provided to run the model in South_Africa_simulated_dat.csv. Expected run time: 30          minutes for one antigen, ~1 day for all antigens on a standard desktop. 
     
