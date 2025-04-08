@@ -40,21 +40,30 @@ The analysis is separated into two phases, 1) influenza tranmission model and 2)
 
 2) serosolver_model: R code required to produce estimates of boosting and waning rates from South Africa and King County individual-level serological data. Expected outputs: Figures related to serology and relevant statistical analyses on serological data.
 
-  - King_County_Serosolver.R: R Code to produce boosting and waning estimates for one sample antigen using the Serosolver model on King      County serology data. Example code provided for cross-sectional pediatric serology and adult paired serology separately. Simulated       data provided to run the model in King_County_simulated_dat.csv. Expected run time: 30 minutes for one antigen, ~2 day for all antigens on a standard desktop. 
-    
+  - King_County_Serosolver.R: R Code to produce boosting and waning estimates for one sample antigen using the Serosolver model on King      County serology data. Example code provided for cross-sectional pediatric serology and adult paired serology separately. Simulated       data provided to run the seroslver model for one antigen in simulated_hcov_hku1_pediatric_serology.csv. Expected run time: 30 minutes for single antigen, ~2 day for all antigens on a standard desktop.
+
+  - King_County_Serosolver.R --> Set up code for running serosolver model on one antigen using King County data for children and adult samples 
+       To run code, simulated serological is provided for the HCoV HKU1 antigen: simulated_hcov_hku1_pediatric_serology.csv (Line 68)
+       To run code, antigenic_map_quarters.csv must be present in the environment. 
+
   - South_Africa_Serosolver.R: R Code to produce boosting and waning estimates for one sample antigen using the Serosolver model on          South Africa PHIRST serology. Simulated data provided to run the model in South_Africa_simulated_dat.csv. Expected run time: 30          minutes for one antigen, ~1 day for all antigens on a standard desktop. 
     
-   - serology_manuscript_analysis_plots.R: R Code to produce all figures for serology and run relevant statistical analyses. Expected 
+  - serology_manuscript_analysis_plots.R: R Code to produce all figures for serology and run relevant statistical analyses. Expected 
      run time: 15 minutes.
 
 ____________________________________________________________________________________________________________________   
      
 Instructions 
 
-1. Run South_Africa_Serosolver.R and King_County_Serosolver.R to produce boosting and waning estimates from individual-level serology.
-2. Visaulize serosolver outputs and conduct relevant statisitcal tests using serology_manuscript_analysis_plots.R.
-3. Load in toy_odin.R and mixing_75.csv to R environment.
-4. Run seattle_flu_model_outputs.R to produce estimates for SEIRS influenza transmission model and plot against observed hospitalization 
+Serological analysis
+1. Run South_Africa_Serosolver.R and King_County_Serosolver.R to produce boosting and waning estimates from individual-level serology. To run code, antigenic_map_quarters.csv must be 
+present in R environment. Simulated data is provided to run King_County_Serosolver.R analysis for the seasonal coronavirus HCoV HKU1 antigen: simulated_hcov_hku1_pediatric_serology.csv.
+Load data in and begin analysis at Line 68 in King_County_Serosolver.R. 
+3. Visaulize serosolver outputs and conduct relevant statisitcal tests using serology_manuscript_analysis_plots.R.
+
+Influenza modeling analysis 
+5. Load in toy_odin.R and mixing_75.csv to R environment.
+6. Run seattle_flu_model_outputs.R to produce estimates for SEIRS influenza transmission model and plot against observed hospitalization 
    data. 
 
 
