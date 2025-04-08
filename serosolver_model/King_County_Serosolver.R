@@ -9,6 +9,10 @@ library(coda)
 library(tidyverse)
 library(serosolver)
 
+##################################################################
+#################### Pediatric Samples   #########################
+##################################################################
+
 # Set MCMC parameters. 
 ##########################################################################
 set.seed(1)
@@ -21,7 +25,7 @@ setwd("/Users/sambents/Desktop/NIH/serology/unprocessed")
 ##########################################################################
 cov = read.csv("serosamples_CoV_22Mar2024.csv") 
 resp = read.csv("serosamples_Resp_22Mar2024.csv")
-print(unique(adult$Assay))
+
 meta = read.csv("demos_children.csv")  %>%
   mutate(Sample = sample_id) # meta data 
 
@@ -31,16 +35,14 @@ sero_samp = left_join(cov, meta, by = c("Sample")) %>%
   mutate(age = age_raw) %>%
   mutate(collection_date = as.Date(blood_date) , collection_year = year(blood_date), collection_month = month(blood_date)) %>%
   dplyr::select(Sample, age, titre, collection_year) %>%
-  # filter(age > 11) %>% # specify age group
- #  filter(age >= 5 & age < 11) %>%
+ # filter(age >= 5 & age < 11) %>% # only interested in children <5 yo here 
    filter(age < 5) %>% 
-  filter(age > .5) %>% 
-  filter(titre > 0) %>%
+   filter(age > .5) %>% 
+   filter(titre > 0) %>%
   drop_na()
 head(sero_samp)
 
 Sample = print(unique(sero_samp$Sample))
-
 n_ind_id = seq(1, length(Sample), 1)
 ids = data.frame(Sample, n_ind_id)
 sero_samp = left_join(sero_samp, ids, by = "Sample")
@@ -66,8 +68,8 @@ head(antibody_data)
 
 # Set up model. 
 ##########################################################################
-time_per_year <- 1
-min(antibody_data$birth)
+time_per_year <- 1 # Samples per year 
+
 ## Read in the parameter table to be modified
 par_tab <- read.csv(system.file("extdata", "par_tab_base.csv", package="serosolver"))
 antigenic_map <- read.csv("antigenic_map_quarters.csv") %>%
@@ -90,25 +92,26 @@ par_tab[par_tab$names %in% c("cr_short","cr_long"),c("values")] <- c(0.03,0.1)
 par_tab[par_tab$names == "antigenic_seniority","fixed"] <- 1
 par_tab[par_tab$names == "antigenic_seniority","values"] <- 0
 
-## Using both long- and short-term antibody kinetics
+## Fitting short-term boosting parameters
 par_tab[par_tab$names == "boost_short","fixed"] <- 0
 par_tab[par_tab$names == "boost_short","values"] <- 2
 
+## Fitting short-term waning parameters
 par_tab[par_tab$names == "wane_short","fixed"] <- 0
 par_tab[par_tab$names == "wane_short","values"] <- 0.25/time_per_year
 
-
-#  we are NOT fitting boost long but not wane long 
+## NOT fitting boost long 
 par_tab[par_tab$names %in% c("boost_long"),"fixed"] <- 1
 par_tab[par_tab$names %in% c("boost_long"),"values"] <- 0
 
-
+##  NOT fitting wane long 
 par_tab[par_tab$names %in% c("wane_long"),"fixed"] <- 1
 par_tab[par_tab$names %in% c("wane_long"),"values"] <- 0
 
-## Infection model prior -- remember you can check what the attack rate prior from this looks like with
+## Infection model prior space parameters 
 par_tab[par_tab$names %in% c("infection_model_prior_shape1","infection_model_prior_shape2"),"values"] <- c(.37, 3.5)
 
+# Set upper bounds for boost and wane short 
 par_tab[par_tab$names %in% c("boost_short"),"upper_bound"] <- max(antibody_data$measurement)
 par_tab[par_tab$names %in% c("wane_short"),"upper_bound"] <-1
 
@@ -125,19 +128,20 @@ prior_func <- function(par_tab){
     ## You can add your own priors on the model parameters here, for example, this places a log-normal prior with mean 2 on the boost_short parameter:
     # prior_p_boost <- dlnorm(pars[which(par_names == "boost_short")], log(2.7), 0.25, log=TRUE)
     # prior_p <- prior_p + prior_p_boost
-    # p1 <- dlnorm(pars["boost_long"],log(2), 0.5,log=TRUE)
-    p2 <- dlnorm(pars["boost_short"],log(2), 0.5,log=TRUE)
-    p3 <- dbeta(pars["wane_short"],1, 1,log=TRUE)
-    p4 <- dbeta(pars["antigenic_seniority"],1, 1,log=TRUE)
-    p5 <- dbeta(pars["cr_long"],1, 1,log=TRUE)
-    p6 <- dbeta(pars["cr_short"],1, 1,log=TRUE)
-    p7 <- dnorm(pars["obs_sd"],0, 100,log=TRUE)
-    prior_p  + p2 + p3 + p4 + p5 + p6 + p7
+    
+    p1 <- dlnorm(pars["boost_short"],log(2), 0.5,log=TRUE)
+    p2 <- dbeta(pars["wane_short"],1, 1,log=TRUE)
+    p3 <- dbeta(pars["antigenic_seniority"],1, 1,log=TRUE)
+    p4 <- dbeta(pars["cr_long"],1, 1,log=TRUE)
+    p5 <- dbeta(pars["cr_short"],1, 1,log=TRUE)
+    p6 <- dnorm(pars["obs_sd"],0, 100,log=TRUE)
+    prior_p  + p1 + p2 + p3 + p4 + p5 + p6
   }
 }
 
 
 plot_all_outputs <- function(res, chain_wd, save_name, save_wd){
+  
   ## Have a look at the posterior estimates
   ## there are now extensive MCMC diagnostics in res$all_diagnostics
   ## this includes all parameter estimates, ESS, Rhat, trace plots, posterior densities etc
@@ -161,7 +165,6 @@ plot_all_outputs <- function(res, chain_wd, save_name, save_wd){
     rename(names=name,est=value) %>%
     left_join(par_tab %>% select(names,values)) %>%
     ggplot() + geom_density(aes(x=est,fill="Posterior"),alpha=0.5) + 
-    # geom_vline(aes(xintercept=values,linetype="True value"),col="black") + ## Comment out for real data
     scale_color_viridis_d(name="") +
     scale_fill_viridis_d(name="") +
     scale_linetype_manual(name="",values=c("True value"="dashed")) +
@@ -174,8 +177,7 @@ plot_all_outputs <- function(res, chain_wd, save_name, save_wd){
   p_ab_predictions <- plot_antibody_predictions(chains$theta_chain,chains$inf_chain,settings=res$settings)
   p_ab_predictions1 <- p_ab_predictions[[4]]
   p_ab_predictions2 <- p_ab_predictions[[5]]
-  
-  
+
   
   ## Plot individual fits to data
   ## Orange shows posterior probability of infection in a given year
@@ -231,23 +233,21 @@ dir.create("fluah3_young")
 dir.create("fluah1_young")
 dir.create("flubvic_young")
 dir.create("flubyam_young")
-
 dir.create("plot_wd")
 
 ######################################################################
-## RUN 1: no antigenic map, no rho, estimating back to birth, AH3, < 3 yo is group 1 
+## RUN MODEL: no antigenic map, no rho, estimating back to birth
 ######################################################################
-res = NULL
+#res = NULL
 res <- serosolver(par_tab, 
                   antibody_data, 
-                  #  demographics=demographics,
+               #  demographics=demographics, # not using demographics 
                   antigenic_map= NULL,
                   fixed_inf_hists= NULL, ## Set fixed infection states
                   prior_func=prior_func,
-                  #  possible_exposure_times= antigenic_map$inf_times,
                   possible_exposure_times= possible_exposure_times,
                   measurement_bias = NULL,
-                  filename="hku1_young/phirst_sim_recovery", 
+                  filename="hku1_young/phirst_sim_recovery", # change file name based on antigen of interest
                   n_chains=4, ## Run 4 chains
                   parallel=TRUE, ## Run in parallel
                   mcmc_pars=mcmc_pars_use, ## Some MCMC control settings
@@ -255,15 +255,16 @@ res <- serosolver(par_tab,
                   data_type=1,
                   start_level="none")
 print(res$all_diagnostics)
-
 plot_all_outputs(res, "hku1_young","hku1_young","plot_wd")
 
 
 
 
+
+
 ##################################################################
+##################### Adult Samples      #########################
 ##################################################################
-#### Adults ######################################################
 
 # Set MCMC parameters. 
 ##########################################################################
@@ -273,7 +274,6 @@ prior_version = 2 # Indicates individual probability of infection is not indepen
 
 ##########################################################################
 setwd("/Users/sambents/Desktop/NIH/serology/unprocessed")
-
 
 # Load unprocessed data in. 
 ##########################################################################
@@ -287,22 +287,20 @@ sero_samp = adult %>%
 #  mutate(titre = log2(as.numeric(mean_titer)/5)) %>%
   mutate(titre = log(mean_titer)) %>%
   dplyr::select(Sample, age, titre, year) %>%
-  filter(	Sample != 1302773) %>%
-  filter(	Sample != 988161) %>%
+  filter(	Sample != 1302773) %>% # non-measurement
+  filter(	Sample != 988161) %>%  # non-measurement
   drop_na()
 head(sero_samp)
 
+# Only interested in paired sera
 count = sero_samp %>%
   count(Sample) %>%
   filter(n == 2)
 
 Sample = print(unique(count$Sample))
 Sample1 = print(unique(count$Sample))
-
 n_ind_id = seq(1, length(Sample), 1)
 ids = data.frame(Sample, n_ind_id)
-
-
 sero_samp = left_join(sero_samp %>% filter(Sample %in% Sample1), ids, by = "Sample")
 
 antibody_data = sero_samp %>% 
@@ -327,14 +325,9 @@ head(antibody_data)
 # Set up model. 
 ##########################################################################
 time_per_year <- 1
-
-print(min(antibody_data$birth))
-
 possible_exposure_times <- c(seq(min(antibody_data$birth), 2016, by = 44), seq(2017, 2022,by=1)) 
 possible_exposure_times <- c(2021, 2022) 
 print(possible_exposure_times)
-
-
 
 ## Fix cross-reactivity parameters as this is a single-antigen analysis
 par_tab[par_tab$names %in% c("cr_short","cr_long"),c("fixed")] <- 1
@@ -344,18 +337,16 @@ par_tab[par_tab$names %in% c("cr_short","cr_long"),c("values")] <- c(0.03,0.1)
 par_tab[par_tab$names == "antigenic_seniority","fixed"] <- 1
 par_tab[par_tab$names == "antigenic_seniority","values"] <- 0
 
-
-## Using both long- and short-term antibody kinetics
+## Fit short-term boosting
 par_tab[par_tab$names == "boost_short","fixed"] <- 0
 par_tab[par_tab$names == "boost_short","values"] <- 2
 
+## Fit short-term waning 
 par_tab[par_tab$names == "wane_short","fixed"] <- 0
 par_tab[par_tab$names == "wane_short","values"] <- 0.03
 
-par_tab[par_tab$names == "wane_short","values"] <- 0.25
 
-
-#  we are NOT fitting boost long but not wane long 
+## NOT fitting boost long but not wane long 
 par_tab[par_tab$names %in% c("boost_long"),"fixed"] <- 1
 par_tab[par_tab$names %in% c("boost_long"),"values"] <- 0
 par_tab[par_tab$names %in% c("wane_long"),"fixed"] <- 1
@@ -363,10 +354,8 @@ par_tab[par_tab$names %in% c("wane_long"),"values"] <- 0
 
 ## Infection model prior -- remember you can check what the attack rate prior from this looks like with
 par_tab[par_tab$names %in% c("infection_model_prior_shape1","infection_model_prior_shape2"),"values"] <- c(.37, 3.5)
-
 par_tab[par_tab$names %in% c("boost_short"),"upper_bound"] <- max(antibody_data$measurement)
 n_indiv = length(unique(antibody_data$individual))
-
 
 
 ## IMPORTANT -- prior function for the model coefficients. This places a standard normal prior on each of the coefficients. 
@@ -380,14 +369,14 @@ prior_func <- function(par_tab){
     ## You can add your own priors on the model parameters here, for example, this places a log-normal prior with mean 2 on the boost_short parameter:
     # prior_p_boost <- dlnorm(pars[which(par_names == "boost_short")], log(2.7), 0.25, log=TRUE)
     # prior_p <- prior_p + prior_p_boost
-    # p1 <- dlnorm(pars["boost_long"],log(2), 0.5,log=TRUE)
-    p2 <- dlnorm(pars["boost_short"],log(2), 0.5,log=TRUE)
-    p3 <- dbeta(pars["wane_short"],1, 1,log=TRUE)
-    p4 <- dbeta(pars["antigenic_seniority"],1, 1,log=TRUE)
-    p5 <- dbeta(pars["cr_long"],1, 1,log=TRUE)
-    p6 <- dbeta(pars["cr_short"],1, 1,log=TRUE)
-    p7 <- dnorm(pars["obs_sd"],0, 100,log=TRUE)
-    prior_p  + p2 + p3 + p4 + p5 + p6 + p7
+    
+    p1 <- dlnorm(pars["boost_short"],log(2), 0.5,log=TRUE)
+    p2 <- dbeta(pars["wane_short"],1, 1,log=TRUE)
+    p3 <- dbeta(pars["antigenic_seniority"],1, 1,log=TRUE)
+    p4 <- dbeta(pars["cr_long"],1, 1,log=TRUE)
+    p5 <- dbeta(pars["cr_short"],1, 1,log=TRUE)
+    p6 <- dnorm(pars["obs_sd"],0, 100,log=TRUE)
+    prior_p  + p1 + p2 + p3 + p4 + p5 + p6 
   }
 }
 
@@ -416,7 +405,6 @@ plot_all_outputs <- function(res, chain_wd, save_name, save_wd){
     rename(names=name,est=value) %>%
     left_join(par_tab %>% select(names,values)) %>%
     ggplot() + geom_density(aes(x=est,fill="Posterior"),alpha=0.5) + 
-    # geom_vline(aes(xintercept=values,linetype="True value"),col="black") + ## Comment out for real data
     scale_color_viridis_d(name="") +
     scale_fill_viridis_d(name="") +
     scale_linetype_manual(name="",values=c("True value"="dashed")) +
@@ -429,7 +417,6 @@ plot_all_outputs <- function(res, chain_wd, save_name, save_wd){
   p_ab_predictions <- plot_antibody_predictions(chains$theta_chain,chains$inf_chain,settings=res$settings)
   p_ab_predictions1 <- p_ab_predictions[[4]]
   p_ab_predictions2 <- p_ab_predictions[[5]]
-  
   
   
   ## Plot individual fits to data
@@ -476,7 +463,6 @@ getwd()
 
 dir.create("sarsspike_adult")
 dir.create("sarsrbd_adult")
-
 dir.create("hku1_adult")
 dir.create("oc43_adult")
 dir.create("nl63_adult")
@@ -494,18 +480,15 @@ dir.create("sarsnc_adult")
 dir.create("plot_wd")
 
 ######################################################################
-## RUN 1: no antigenic map, no rho, estimating back to birth, AH3, < 3 yo is group 1 
+## RUN 1: no antigenic map, no rho, estimating back to birth
 ######################################################################
-res = NULL
-
-
+#res = NULL
 res <- serosolver(par_tab, 
                   antibody_data, 
-                  #  demographics=demographics,
-                  antigenic_map= NULL,
+               # demographics=demographics, # not using demographics 
+                 antigenic_map= NULL,
                   fixed_inf_hists= NULL, ## Set fixed infection states
-                  prior_func=prior_func,
-                  #  possible_exposure_times= antigenic_map$inf_times,
+                  prior_func=prior_func, 
                   possible_exposure_times= possible_exposure_times,
                   measurement_bias = NULL,
                   filename="sarsrbd_adult/phirst_sim_recovery", 
@@ -516,46 +499,6 @@ res <- serosolver(par_tab,
                   data_type=1,
                   start_level="none")
 print(res$all_diagnostics)
-
 plot_all_outputs(res, "sarsrbd_adult","sarsrbd_adult","plot_wd")
 
 
-
-
-##########################
-#####
-# with rho
-#######################
-res = NULL
-
-par_tab_rhos <- data.frame(names="rho",values= 6,fixed=0,
-                           lower_bound= 0, upper_bound= 12, lower_start= 2,
-                           upper_start=7,biomarker_group = 1,
-                           stratification= NA,
-                           par_type=3) # lower bound is first quadrant
-par_tab_rhos$values <- rnorm(1, 1)
-measurement_bias <- data.frame(biomarker_id = unique(antibody_data$biomarker_id),
-                               obs_type = rep(1:1, each=length(unique(antibody_data$biomarker_id))),
-                               rho_index=1:(length(unique(antibody_data$biomarker_id))*1))
-par_tab_with_rho <- bind_rows(par_tab, par_tab_rhos)
-
-
-res <- serosolver(par_tab_with_rho, 
-                  antibody_data, 
-                  #  demographics=demographics,
-                  antigenic_map= NULL,
-                  fixed_inf_hists= NULL, ## Set fixed infection states
-                  prior_func=prior_func,
-                  #  possible_exposure_times= antigenic_map$inf_times,
-                  possible_exposure_times= possible_exposure_times,
-                  measurement_bias = measurement_bias,
-                  filename="oc43_adult/phirst_sim_recovery", 
-                  n_chains=4, ## Run 3 chains
-                  parallel=TRUE, ## Run in parallel
-                  mcmc_pars=mcmc_pars_use, ## Some MCMC control settings
-                  verbose=TRUE,
-                  data_type=1,
-                  start_level="none")
-print(res$all_diagnostics)
-
-plot_all_outputs(res, "oc43_adult","oc43_adult","plot_wd")
