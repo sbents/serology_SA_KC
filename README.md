@@ -38,6 +38,7 @@ The analysis is separated into two phases, 1) influenza tranmission model and 2)
     bands from ages 5-80. Mixing matrix was adapted from Mossing et al. 2008 (10.1371/journal.pmed.0050074). Must be present in R 
     environment to run analysis in seattle_flu_model_outputs.R.
 
+
 2) serosolver_model: R code required to produce estimates of boosting and waning rates from South Africa and King County individual-level serological data. Expected outputs: Figures related to serology and relevant statistical analyses on serological data.
 
   - King_County_Serosolver.R: R Code to produce boosting and waning estimates for one sample antigen using the Serosolver model on King      County serology data. Example code provided for cross-sectional pediatric serology and adult paired serology separately. Simulated       data provided to run the seroslver model for one antigen in simulated_hcov_hku1_pediatric_serology.csv. Expected run time: 30 minutes for single antigen, ~2 day for all antigens on a standard desktop.
