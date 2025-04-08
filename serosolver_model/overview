@@ -1,4 +1,4 @@
-File Overviews 
+File Overview
 
 King_County_Serosolver.R --> Set up code for running serosolver model on one antigen using King County data for children and adult samples 
        To run code, simulated serological is provided for the HCoV HKU1 antigen: simulated_hcov_hku1_pediatric_serology.csv (Line 68)
@@ -9,5 +9,5 @@ South_Africa_Serosolver.R --> Set up for running serosolver model on one antigen
 serology_manuscript_analysis_plots.R --> Code to produce all serology figures and run statistical analyses 
 
 pediatric_serology_kingcounty.csv --> publicly available individual-level serology containing Individual, Assay, Year, 
-Mean_Titer, Age_Band, Collection_Quarter. 
+        Mean_Titer, Age_Band, Collection_Quarter. 
 
