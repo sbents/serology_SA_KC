@@ -65,6 +65,11 @@ antibody_data = sero_samp %>%
   drop_na()
 head(antibody_data)
 
+#########################################################################
+# Read in simulated data and start code here:
+
+antibody_data = read.csv("simulated_hcov_hku1_pediatric_serology.csv")
+
 
 # Set up model. 
 ##########################################################################
