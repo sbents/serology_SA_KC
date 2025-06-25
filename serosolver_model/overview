@@ -2,7 +2,7 @@ File Overview
 
 King_County_Serosolver.R --> Set up code for running serosolver model on one antigen using King County data for children and adult samples 
        To run code, simulated serological is provided for the HCoV HKU1 antigen: simulated_hcov_hku1_pediatric_serology.csv (Line 68)
-       To run code, antigenic_map_quarters.csv must be present in the environment. 
+       To run code, antigenic_map_quarters.csv must be present in the environment, but is not used in the current inferential process. 
 
 South_Africa_Serosolver.R --> Set up for running serosolver model on one antigen using PHIRST South Africa data 
 
