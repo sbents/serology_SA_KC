@@ -57,7 +57,7 @@ Serological analysis
 
 1. Run South_Africa_Serosolver.R and King_County_Serosolver.R to produce boosting and waning estimates from individual-level serology. To run code, antigenic_map_quarters.csv must be 
 present in R environment. In this analysis, an antigenic map was not used in the inference process, indicated by setting "antigenic_map= NULL" in the serosolver function. Simulated data is provided to run King_County_Serosolver.R analysis for the seasonal coronavirus HCoV HKU1 antigen: simulated_hcov_hku1_pediatric_serology.csv.
-2. Load simulated data ("simulated_hcov_hku1_pediatric_serology.csv" in at Line 51 in King_County_Serosolver.R file and run analysis.
+2. Load simulated data ("simulated_hcov_hku1_pediatric_serology.csv" at Line 51 in King_County_Serosolver.R file and run analysis.
 3. Note that a new folder will need to be created in the working directory to save and visualize model diagnostics (Line 204). 
 
 Influenza modeling analysis 
