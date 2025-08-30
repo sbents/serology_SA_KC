@@ -29,107 +29,8 @@ max_t <- 2000 # max time point (in months)
 mixing <- as.matrix(read.csv("mixing_75.csv", header = TRUE), header = TRUE)*365/12 
 
 
-# Age-structured SEIRS model code 
-
-
-###################################################################################
-###################################
-
-# Model 
-# Time Steps
-time <- t
-output(time) <- TRUE
-nAges <- 75
-
-## Model Parameters
-b0 <- user()
-b1 <- user()
-phi <- user()
-delta <- user()
-gamma <- user()
-omega_vect[] <- user()
-prop_detected_vect[] <- user()
-imm_detected_vect[] <- user()
-sigma_vect[] <- user()
-mixing[,] <- user()
-timestart <- user()
-timeend <- user()
-timestart2 <- user()
-timeend2 <- user()
-timestart3 <- user()
-timeend3 <- user()
-timestart4 <- user()
-timeend4 <- user()
-betared <- user()
-betared2 <- user()
-betared3 <- user()
-betared4 <- user()
-imm_detected_1 = .083  # proportion detected, hospitalization rate for age group 1
-imm_detected_2 =  .083  # hos rate 2 
-imm_detected_3 = .083  #user() # hos rate 3
-imm_detected_4 =.083  # user()# hos rate 4
-imm_detected_5 = .083  # user()
-
-dim(mixing) <- c(nAges, nAges)
-dim(sigma_vect) <- nAges
-dim(omega_vect) <- nAges
-dim(prop_detected_vect) <- nAges
-dim(imm_detected_vect) <- nAges
-
-## Derivatives for Flows Between Compartments
-##------------------------------------------------------------------------------
-temp[] <- omega_vect[i] * I[i] / N[i]
-s_ij[,] <- mixing[i,j] * temp[j]
-lambda[] <- b0 * (1 + b1 * cos(2 * 3.14159265358979323846 * time / 12 + phi)) * sum(s_ij[i,])
-infect[] <- lambda[i] * sigma_vect[i] * S[i]
-
-deriv(S[1:nAges]) <- -infect[i] + imm_detected_vect[i] * R[i]
-deriv(E[1:nAges]) <- infect[i] - delta * E[i]
-deriv(I[1:nAges]) <- delta*E[i] - gamma * I[i]
-deriv(R[1:nAges]) <- gamma * I[i] - imm_detected_vect[i] * R[i]
-N[1:nAges] <- S[i] + E[i] + I[i] + R[i]
-deriv(Incidence[1:nAges]) <- infect[i]
-deriv(DetIncidence[1:nAges]) <- prop_detected_vect[i] * infect[i]
-
-## Initial states:
-initial(S[1:nAges]) <- S0[i]
-initial(E[1:nAges]) <- E0[i]
-initial(I[1:nAges]) <- I0[i]
-initial(R[1:nAges]) <- R0[i]
-initial(Incidence[1:nAges]) <- Incidence0[i]
-initial(DetIncidence[1:nAges]) <- DetIncidence0[i]
-
-##Initial vectors
-S0[] <- user()
-E0[] <- user()
-I0[] <- user()
-R0[] <- user()
-Incidence0[] <- user()
-DetIncidence0[] <- user()
-
-##Dimensions of the different "vectors" used
-# For the State Variables
-dim(S) <- nAges
-dim(E) <- nAges
-dim(I) <- nAges
-dim(R) <- nAges
-dim(N) <- nAges
-dim(Incidence) <- nAges
-dim(DetIncidence) <- nAges
-dim(S0) <- nAges
-dim(E0) <- nAges
-dim(I0) <- nAges
-dim(R0) <- nAges
-dim(Incidence0) <- nAges
-dim(DetIncidence0) <- nAges
-dim(lambda) <- nAges
-dim(s_ij) <- c(nAges,nAges)
-dim(temp) <- nAges
-dim(infect) <- nAges
-
-
-
-########################## function 
+# Model function
+##################################################################
 run_imm_model_fit <- function(b0 = .8,
                               b1 =   .5,
                               phi =  0.98456,
@@ -162,20 +63,11 @@ run_imm_model_fit <- function(b0 = .8,
                               popInput = 737000,# population size 
                               age_threshhold = 5){ # was 10 in the Hogan model, should be adpated if dealing with older ages 
   
-  #imm_detected_1 = .083 # hospitalization rate 1 for age group 1
-  # imm_detected_2 = .083 # hr2 
-  # imm_detected_3 = .083 # hr3 
-  # imm_detected_4 = .083 # hr4
-  # imm_detected_5 = .083
-  #  
-  
-  # b1 =   0.28
-  #phi =  4.8
-  omega <- .5   #0.55 # reduced infectiousness from older age groups
-  delta <- 15.21   #15.21 # latency rate according to yang et al which did not include a latent period and instead had longer infectious period
-  gamma <- 13.41  #13.41   # 7.60 # infectious rate = 6.25 including latency, https://watermark.silverchair.com/115-5-736.pdf?token=AQECAHi208BE49Ooan9kkhW_Ercy7Dm3ZL_9Cf3qfKAc485ysgAAAuAwggLcBgkqhkiG9w0BBwagggLNMIICyQIBADCCAsIGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMDB64hFfR2vPRK81gAgEQgIICkx7nO55gsxUtfmo0vWnvlhL9LYOZuwFr-zpa4_eMsX6TdZwWkOc64yAbZRwMDaVuicm_Lor_bpuSdjvQwy9QKIMUUfesNbcs39ACW10yXIOP-y4MG_R_it_GL7K7E4UCYdh9NNSRX8v9by7AVpqnBSNEp5ZMk0axrp9vk-7iQYJv89krn2JvmPbyX-99n6W4YHvDRcCOw8_xrNmmpZXqxuRvzXGpTOmUgshhrrrtIDUL2fth3v416vTfC_SmXgMEX6P6dQ9Ky-oVWm_pPxO-UpQSz4LqXh8r0eiNo1r9ZuSMnok1iqkQ546oqtmJCRWjMiTcxa2Hwix064p3wyHqb6SuXnjbXmDfPJvYuAGH1evEZjAQIMNGRa0XSrPPRJIHJvliGTaF7YlBNZH4oSGyp5XjiwEiuVswfHFJ8pS60FJNSd0XSevOBRRzIThSvVree7mDEVlzY62wuuzyt1xy8Pg9m6qmeQEucKxhFXPLFEJuIao2u_9BRMkW6qTBxUBCGyA-frk3Jdbpp_qJEU_TiVA_HQ-11noQN6yoHlK4mtxy1VUmgkj2nvnsk3dc1KPlVVXhW_1b1oxLrtSoQxHiQjvxI1AZ17jJYGO41LRzpxFOu3Mi0r77ZV-QrdmevugN7Whq3PbqDJPIc0V0i1X7CvrfLM-V4tVinUeV1EkmeUuZgUg0tHPo4DyPbP97guNut84n7Mz_DOM9nZne8l3CVjairjzOBaJQnTEsq-vKfi4OA8XJkkFTkzWtR_GzYXKdISDgN5-WCPEDsdoeXJTtfGlZKWlOx2WB_4dRIdb0aefNcBmpG0ZxOlhTKv7XEwQLj3LjvKaX3YiH5UJMquVhKEBaCrfZMRGscF-W7rOC0uciJ9zL
-  # nu <- .12 # rate of waning immunity # was .132 in hogan model and i changed it to .2 which fit. put in 1 year but will need to fit. https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1007096 
-  dt <- .033   # 1/30    # 0.03 # .25  # what is this
+
+  omega <- .5   # reduced infectiousness from older age groups
+  delta <- 15.21 # latency rate 
+  gamma <- 13.41  # infectious rate 
+  dt <- .033  
   T0 <- 0
   
   
@@ -212,13 +104,14 @@ run_imm_model_fit <- function(b0 = .8,
   omega_vect[!(age_vect_years < age_threshhold)] <- omega
   
   
-  # proportion hospitalizations detected, this needs to be changed if age structure changes 
+  #Pproportion hospitalizations detected, this needs to be changed if age structure changes 
   prop_detected_vect <- as.vector(c(rep(prop_detected_1, 60),#0-4 yo
                                     rep(prop_detected_2, 3), #5-10 yo
                                     rep(prop_detected_3, 6), #10-20 yo
                                     rep(prop_detected_4, 3), #20-64 yo
                                     rep(prop_detected_5, (nAges-72))))  #65+
   
+  # immunity age structure, this needs to be changed if age structure changes 
   imm_detected_vect  <- as.vector(c(rep(imm_detected_1, 60),#0-4 yo
                                     rep(imm_detected_2, 3), #5-10 yo
                                     rep(imm_detected_3, 6), #10-20 yo
@@ -554,13 +447,11 @@ all_inc_sum <- as.data.frame(all_inc)%>%
             yr5_10 = V61 ,
             yr10_20 = V62 + V63,  
             yr20_65 =  V64 + V65 + V66 + V67 + V68 + V69 + V70 + V71 + V72, 
-            #   yr50_65 =  V70 + V71 + V72,
             yr_65 = V73+ V74+ V75) %>%
   mutate(total = (yr0_5 +  yr5_10 + yr10_20 + yr20_65 +  yr_65)) %>% 
   mutate(t = seq(1880, 2000, 1)) %>% 
   mutate(time = seq(2017, 2027, 1/12 )) %>%
   mutate(pct = total/2280540*100)
-
 
 
 # Fitted tiered immunity scenario 
@@ -605,7 +496,6 @@ all_inc_sum <- as.data.frame(all_inc)%>%
             yr5_10 = V61 ,
             yr10_20 = V62 + V63,  
             yr20_65 =  V64 + V65 + V66 + V67 + V68 + V69 + V70 + V71 + V72, 
-            #   yr50_65 =  V70 + V71 + V72,
             yr_65 = V73+ V74+ V75) %>%
   mutate(total = (yr0_5 +  yr5_10 + yr10_20 + yr20_65 +  yr_65)) %>% 
   mutate(t = seq(1880, 2000, 1)) %>% 
@@ -743,10 +633,10 @@ a = ggplot(data = age_plot %>% filter(time > 2017.6), aes(x = time, y = ((monthl
   scale_color_manual(values = re_pal) +
   labs(color = "Age group") +
   theme(legend.position="bottom") +
-  theme(axis.title.y = element_text(size = 10)) +
+  theme(axis.title.y = element_text(size = 8)) +
   theme(axis.title.x = element_blank() ) +
-  theme(axis.text = element_text(size = 12, color = "black"),
-        axis.title = element_text(size = 12, color = "black"),
+  theme(axis.text = element_text(size = 7, color = "black"),
+        axis.title = element_text(size = 7, color = "black"),
         axis.line = element_blank(),
         axis.ticks = element_line(color = "black"),
         plot.title = element_text(colour = "black", size = 13.5, face = "bold"),
@@ -754,8 +644,8 @@ a = ggplot(data = age_plot %>% filter(time > 2017.6), aes(x = time, y = ((monthl
         plot.subtitle = element_text(colour = "black", size = 12.5),
         legend.position = "bottom",
         legend.key.width = unit(0.5, "cm"),
-        legend.text = element_text(size = 12, color = "black"),
-        legend.title = element_text(size =12, color = "black"),
+        legend.text = element_text(size = 8, color = "black"),
+        legend.title = element_text(size = 9, color = "black"),
         strip.text = element_text(colour = "black", size = 15, hjust = 0),
         strip.background = element_rect(colour="white", fill="white"),
         panel.border = element_rect(colour = "black", fill=NA))
@@ -795,9 +685,9 @@ b = ggplot(data = age, aes(x = factor(age_band, levels = c("0-4", "5-19", "20-64
   xlab('Age group') + 
   theme_light()+
   theme(legend.position="bottom") +
-  theme(axis.title.y = element_text(size = 10)) +
-  theme(axis.text = element_text(size = 12, color = "black"),
-      axis.title = element_text(size = 12, color = "black"),
+  theme(axis.title.y = element_text(size = 8)) +
+  theme(axis.text = element_text(size = 7, color = "black"),
+      axis.title = element_text(size = 7, color = "black"),
       axis.line = element_blank(),
       axis.ticks = element_line(color = "black"),
       plot.title = element_text(colour = "black", size = 13.5, face = "bold"),
@@ -805,8 +695,8 @@ b = ggplot(data = age, aes(x = factor(age_band, levels = c("0-4", "5-19", "20-64
       plot.subtitle = element_text(colour = "black", size = 12.5),
       legend.position = "bottom",
       legend.key.width = unit(0.5, "cm"),
-      legend.text = element_text(size = 12, color = "black"),
-      legend.title = element_text(size =12, color = "black"),
+      legend.text = element_text(size = 8, color = "black"),
+      legend.title = element_text(size =9, color = "black"),
       strip.text = element_text(colour = "black", size = 15, hjust = 0),
       strip.background = element_rect(colour="white", fill="white"),
       panel.border = element_rect(colour = "black", fill=NA))
@@ -839,8 +729,8 @@ c = ggplot(data = plot_un) +
   ylab("Monthly healthcare encounters") +
   xlab("Time") +
   theme(legend.position="bottom") +
-  theme(axis.text = element_text(size = 12, color = "black"),
-        axis.title = element_text(size = 12, color = "black"),
+  theme(axis.text = element_text(size = 7, color = "black"),
+        axis.title = element_text(size = 7, color = "black"),
         axis.line = element_blank(),
         axis.ticks = element_line(color = "black"),
         plot.title = element_text(colour = "black", size = 13.5, face = "bold"),
@@ -848,12 +738,12 @@ c = ggplot(data = plot_un) +
         plot.subtitle = element_text(colour = "black", size = 12.5),
         legend.position = "bottom",
         legend.key.width = unit(0.5, "cm"),
-        legend.text = element_text(size = 12, color = "black"),
-        legend.title = element_text(size =12, color = "black"),
+        legend.text = element_text(size = 8, color = "black"),
+        legend.title = element_text(size =9, color = "black"),
         strip.text = element_text(colour = "black", size = 15, hjust = 0),
         strip.background = element_rect(colour="white", fill="white"),
         panel.border = element_rect(colour = "black", fill=NA)) +
-  theme(axis.title.y = element_text(size = 10)) 
+  theme(axis.title.y = element_text(size = 7)) 
 c
 
 # Predicted age structure - uniform immunity 
@@ -944,33 +834,42 @@ model_ageplot = rbind(uniform, tiered) %>% mutate(tp = factor(tp, levels = c("Pr
   geom_col(position = "dodge") +
   facet_wrap(vars(Immunity), nrow = 2) +
   theme_bw() +
-  xlab("Age group") + ylab("Proportion of hospitalizations") +
+  xlab("Age group") + ylab("Proportion of healthcare encounters") +
   scale_fill_manual(values = re_pal) +
   labs(fill = "Time period") + 
-  theme(axis.title.y = element_text(size = 10)) +
+  theme(axis.title.y = element_text(size = 8)) +
   theme(legend.position="none") +
   theme(text = element_text(size=7))  +
   theme(strip.background = element_rect(fill="gray94")) +
-  theme(axis.text = element_text(size = 12, color = "black"),
-        axis.title = element_text(size = 12, color = "black"),
+  theme(axis.text = element_text(size = 7, color = "black"),
+        axis.title = element_text(size = 7, color = "black"),
         axis.line = element_blank(),
         axis.ticks = element_line(color = "black"),
-        plot.title = element_text(colour = "black", size = 13.5, face = "bold"),
+        plot.title = element_text(colour = "black", size = 9, face = "bold"),
         plot.title.position = "plot",
-        plot.subtitle = element_text(colour = "black", size = 12.5),
+        plot.subtitle = element_text(colour = "black", size = 9),
         legend.position = "bottom",
         legend.key.width = unit(0.5, "cm"),
-        legend.text = element_text(size = 12, color = "black"),
-        legend.title = element_text(size =12, color = "black"),
-        strip.text = element_text(colour = "black", size = 12, hjust = 0),
+        legend.text = element_text(size = 8, color = "black"),
+        legend.title = element_text(size =9, color = "black"),
+        strip.text = element_text(colour = "black", size = 9, hjust = 0),
         strip.background = element_rect(colour="white", fill="white"),
         panel.border = element_rect(colour = "black", fill=NA))
 model_ageplot
 
 # Plot altogether 
-plot_grid(a, b, c, model_ageplot, rel_widths = c(1/2, 1/4, 1/2, 1/4),
-          rel_heights = c(1, 1, 2, 2), labels = c("a", "b", "c", "d"))
+figure3 = plot_grid(a, b, c, model_ageplot, rel_widths = c(2/3, 1/3, 2/3, 1/3),
+          rel_heights = c(1, 1, 3, 3), labels = c("a", "b", "c", "d"))
+figure3
 
+ggsave(
+  "Figure3.pdf",
+  plot = figure3,
+  device = "pdf",   
+  width = 250,
+  height = 178,
+  units = "mm"
+)
 
 
 
