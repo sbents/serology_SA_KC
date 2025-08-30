@@ -26,11 +26,11 @@ betared <- user()
 betared2 <- user()
 betared3 <- user()
 betared4 <- user()
-imm_detected_1 = .083  # proportion detected, hospitalization rate for age group 1
-imm_detected_2 =  .083  # hos rate 2 
-imm_detected_3 = .083  #user() # hos rate 3
-imm_detected_4 =.083  # user()# hos rate 4
-imm_detected_5 = .083  # user()
+imm_detected_1 = .083  
+imm_detected_2 =  .083 
+imm_detected_3 = .083  
+imm_detected_4 =.083  
+imm_detected_5 = .083  
 
 dim(mixing) <- c(nAges, nAges)
 dim(sigma_vect) <- nAges
